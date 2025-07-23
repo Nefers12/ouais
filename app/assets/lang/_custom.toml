@@ -11,8 +11,8 @@ mediaYouTubeURL = "#"
 mediaDiscordURL = "https://discord.gg/orizon"
 
 [ejs.settings]
-sourceGithubLink = "https://github.com/dscalZi/HeliosLauncher"
-supportLink = "https://github.com/dscalZi/HeliosLauncher/issues"
+sourceGithubLink = "https://github.com/Nefers12/ouais"
+supportLink = "https://github.com/Nefers12/ouais/issues"
 
 [ejs.welcome]
 welcomeHeader = "WELCOME TO WESTEROSCRAFT"
