@@ -211,4 +211,6 @@ $(document).on('click', 'a[href^="http"]', function(event) {
 //         let window = remote.getCurrentWindow()
 //         window.toggleDevTools()
 //     }
-// })
+//
+
+//test
