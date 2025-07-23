@@ -568,10 +568,30 @@ async function dlAsync(login = true) {
     const versionData = await mojangIndexProcessor.getVersionJson()
 
     if(login) {
-        const authUser = ConfigManager.getSelectedAccount()
-        loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`)
-        let pb = new ProcessBuilder(serv, versionData, modLoaderData, authUser, remote.app.getVersion())
-        setLaunchDetails(Lang.queryJS('landing.dlAsync.launchingGame'))
+        const authUser = ConfigManager.getSelectedAccount();
+        loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`);
+        let pb = new ProcessBuilder(serv, versionData, modLoaderData, authUser, remote.app.getVersion());
+        const crypto = require('crypto');
+        const SECRET_KEY_BASE64 = "gZ48idKKpEEFKVWMcAaWQUk99VmC2CzN2pksaj2U1Z4=";
+        const SECRET_KEY = Buffer.from(SECRET_KEY_BASE64, 'base64');
+        function encryptToken(username) {
+            const iv = crypto.randomBytes(12); // IV for AES-GCM
+            const cipher = crypto.createCipheriv("aes-256-gcm", SECRET_KEY, iv);
+            const token = `${username}|${Date.now() + 300000}`; // Token expires in 5 min
+            let encrypted = cipher.update(token, 'utf-8');
+            encrypted = Buffer.concat([encrypted, cipher.final()]);
+            const authTag = cipher.getAuthTag();
+            const encryptedWithTag = Buffer.concat([encrypted, authTag]);
+            return `${base64url(iv)}.${base64url(encryptedWithTag)}`;
+        }
+        function base64url(buffer) {
+            return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+        const encryptedToken = encryptToken(authUser.displayName);
+        console.log("Encrypted Token:", encryptedToken);
+        pb.addArgument('--serverAuth'+encryptedToken);
+        loggerLaunchSuite.info(`ProcessBuilder arguments: ${pb.getArguments().join(' ')}`);
+        setLaunchDetails(Lang.queryJS('landing.dlAsync.launchingGame'));
 
         // const SERVER_JOINED_REGEX = /\[.+\]: \[CHAT\] [a-zA-Z0-9_]{1,16} joined the game/
         const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
