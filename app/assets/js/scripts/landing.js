@@ -100,6 +100,12 @@ function setLaunchEnabled(val){
 
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
+
+    const launchButton = document.getElementById('launch_button')
+
+    launchButton.disabled = true
+    loggerLanding.info('Launch button disabled.')
+
     loggerLanding.info('Launching game..')
     try {
         const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -289,6 +295,10 @@ function showLaunchFailure(title, desc){
     setOverlayHandler(null)
     toggleOverlay(true)
     toggleLaunchArea(false)
+        
+    document.getElementById('launch_button').disabled = false
+    loggerLanding.info('Launch button re-enabled after failure.')
+
 }
 
 /* System (Java) Scan */
@@ -537,6 +547,12 @@ async function dlAsync(login = true) {
 
     fullRepairModule.destroyReceiver()
 
+            if(!login) {
+            toggleLaunchArea(false)
+            setLaunchEnabled(true)
+            return
+        }
+
     setLaunchDetails(Lang.queryJS('landing.dlAsync.preparingToLaunch'))
 
     const mojangIndexProcessor = new MojangIndexProcessor(
@@ -561,6 +577,8 @@ async function dlAsync(login = true) {
         const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
 
         const onLoadComplete = () => {
+            remote.getCurrentWindow().hide()
+            
             toggleLaunchArea(false)
             if(hasRPC){
                 DiscordWrapper.updateDetails(Lang.queryJS('landing.discord.loading'))
@@ -611,6 +629,28 @@ async function dlAsync(login = true) {
             // Bind listeners to stdout.
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
+
+                        proc.on('close', (code, signal) => {
+                // Montrer et remettre la fenêtre du launcher au premier plan.
+                const window = remote.getCurrentWindow()
+                if (window) {
+                    window.show()
+                    window.focus()
+                }
+
+                // Arrêter le RPC Discord s'il était actif.
+                if (hasRPC) {
+                    loggerLaunchSuite.info('Shutting down Discord Rich Presence..')
+                    DiscordWrapper.shutdownRPC()
+                    hasRPC = false
+                }
+                
+                // Réinitialiser la référence du processus.
+                proc = null
+                document.getElementById('launch_button').disabled = false
+                loggerLanding.info('Launch button re-enabled after game closed.')
+
+            })
 
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
 
