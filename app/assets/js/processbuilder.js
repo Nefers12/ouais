@@ -31,7 +31,8 @@ class ProcessBuilder {
         this.modManifest = modManifest
         this.authUser = authUser
         this.launcherVersion = launcherVersion
-        this.forgeModListFile = path.join(this.gameDir, 'forgeMods.list') // 1.13+
+        this.customArgs = []
+        this.forgeModListFile = path.join(this.gameDir, 'forgeMods.list')
         this.fmlDir = path.join(this.gameDir, 'forgeModList.json')
         this.llDir = path.join(this.gameDir, 'liteloaderModList.json')
         this.libPath = path.join(this.commonDir, 'libraries')
@@ -39,6 +40,14 @@ class ProcessBuilder {
         this.usingLiteLoader = false
         this.usingFabricLoader = false
         this.llPath = null
+    }
+        
+    addArgument(arg) {
+        this.customArgs.push(arg);
+    }
+    
+    getArguments() {
+        return this.customArgs;
     }
     
     /**
@@ -70,6 +79,8 @@ class ProcessBuilder {
             //args = args.concat(this.constructModArguments(modObj.fMods))
             args = args.concat(this.constructModList(modObj.fMods))
         }
+        
+        args.push(...this.customArgs);
 
         // Hide access token
         const loggableArgs = [...args]
