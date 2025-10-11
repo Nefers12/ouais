@@ -4,7 +4,7 @@ const ConfigManager = require('./configmanager')
 
 // Old WesterosCraft url.
 // exports.REMOTE_DISTRO_URL = 'http://mc.westeroscraft.com/WesterosCraftLauncher/distribution.json'
-exports.REMOTE_DISTRO_URL = 'http://fastdl.terrymarquis.fr:82/orizon/orizon.json'
+exports.REMOTE_DISTRO_URL = 'https://cdn.terrymarquis.fr/orizon/orizon.json'
 
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
